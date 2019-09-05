@@ -19,7 +19,7 @@ You need the following software installed on your computer to be able to install
 
 Download [RuBERT](http://docs.deeppavlov.ai/en/master/features/pretrained_vectors.html#bert) from http://files.deeppavlov.ai/deeppavlov_data/bert/rubert_cased_L-12_H-768_A-12_v1.tar.gz
 
-For the sake of this example, place RuBERT in your user's root directory, and unpack it with
+For the sake of this example, place the downloaded RuBERT file in your user's root directory, and unpack it with
 
 ```
 tar zxvf rubert_cased_L-12_H-768_A-12_v1.tar.gz
@@ -54,6 +54,7 @@ $ python3 -m pytorch_transformers.convert_tf_checkpoint_to_pytorch \
 
 After the conversion, copy the required files to a separate directory; `~/pytorch-rubert/`:
 ```
+mkdir ~/pytorch-rubert
 cp ~/rubert_cased_L-12_H-768_A-12_v1/rubert_pytorch.bin ~/pytorch-rubert/.
 cp ~/rubert_cased_L-12_H-768_A-12_v1/vocab.txt ~/pytorch-rubert/.
 cp ~/rubert_cased_L-12_H-768_A-12_v1/bert_config.json ~/pytorch-rubert/config.json
@@ -82,9 +83,67 @@ with torch.no_grad():
 
 ### Convert the pytorch-transformer model to a spaCy package
 
-* run serialize_spacy_nlp_pipeline.py
-* run python3 -m spacy package ...
-* python3 setup.py sdist -> .tar.gz package
-* run spacy_example.py
+In order to create a spaCy package of the PyTorch model, it first has to be saved to disk
+as a serialized pipeline. First, create the directory in which to save the pipeline, then run
+the [script](src/serialize_spacy_nlp_pipeline.py) for serializing and saving it.
 
+```
+mkdir ~/spacy-rubert
+python3 -m src.serialize_spacy_nlp_pipeline
+```
+
+You now have all you need to create a spaCy package in `~/spacy-rubert`. 
+
+**OPTIONAL:** fill in the appropriate information in `~/spacy-rubert/meta.json` 
+before proceeding.
+
+Run the following commands to create a spaCy package from the serialized pipeline and save it to `~/spacy-rubert-package`:
+
+```
+mkdir ~/spacy-rubert-package
+python3 -m spacy package ~/spacy-rubert ~/spacy-rubert-package
+```
+**NOTE:** that the name of the model directory under `~/spacy-rubert-package` depends on the 
+information you supplied in `~/spacy-rubert/meta.json` in the previous step. The name used below
+originates from a raw `meta.json` file.
+```
+cd ~/spacy-rubert-package/ru_model-0.0.0
+python3 setup.py sdist
+```
+
+After successful completion of the above commands, the RuBERT model is available as a spaCy package in:
+
+```
+~/spacy-rubert-package/ru_model-0.0.0/dist/ru_model-0.0.0.tar.gz
+```
+
+Installing it with:
+
+```
+pip3 install ~/spacy-rubert-package/ru_model-0.0.0/dist/ru_model-0.0.0.tar.gz
+```
+
+Verify its presence in the current virtualenv:
+
+```
+pip3 freeze | grep ru-model
+> ru-model==0.0.0
+```
+
+Here is an example of how the package can be loaded and used ([source](src/spacy_example.py)):
+
+```
+import spacy
+
+nlp = spacy.load("ru_model")
+doc = nlp("Рад познакомиться с вами.")
+print(doc.vector)
+print(doc[0].similarity(doc[0]))
+print(doc[0].similarity(doc[1]))
+```
+
+**NOTE:** that the above example does not make use of a GPU. For that to happen, 
+you need a different installation of spaCy than the one specified in the `requirements.txt`
+in this repository.
+ 
  
