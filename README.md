@@ -60,7 +60,7 @@ cp ~/rubert_cased_L-12_H-768_A-12_v1/vocab.txt ~/pytorch-rubert/.
 cp ~/rubert_cased_L-12_H-768_A-12_v1/bert_config.json ~/pytorch-rubert/config.json
 ```
 
-You now have the files required to use RuBERT in pytorch-transformers. The following code snippet is an example of how th PyTorch model can be loaded and used in pytorch-transformers [(source)](src/pytorch_transformers_example.py):
+You now have the files required to use RuBERT in pytorch-transformers. The following code snippet is an example of how th PyTorch model can be loaded and used in pytorch-transformers ([source])(src/pytorch_transformers_example.py):
 
 ```
 import torch
